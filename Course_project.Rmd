@@ -94,7 +94,7 @@ Fit1 <- train(classe ~ .,
 
 We can represent the outcome of our model and then show graphically the resampling profile
 
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.path="figures/"}
 
 Fit1
 
@@ -105,7 +105,7 @@ plot(Fit1, metric = "Accuracy", plotType = "level",
 
 ```
 
-Finally, we can apply to our testing dataset to get an appropriate estimate of the out of sample error. This method is based on the principle that we must always calculate forecast accuracy measures using test data that was not used when computing the model. 
+Finally - we can apply to our testing dataset to get an appropriate estimate of the out of sample error. This method is based on the principle that we must always calculate forecast accuracy measures using test data that was not used when computing the model. 
 
 ```{r, echo = TRUE}
 # Apply to predict on the test dataset
