@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Semola2006.GitHub.io : ">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Semola2006.GitHub.io</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/semola2006">View on GitHub</a>
+
+          <h1 id="project_title">Semola2006.GitHub.io</h1>
+          <h2 id="project_tagline"></h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>Skip to content
+This repository
+Search
+Pull requests
+Issues
+Gist
+ <a href="https://github.com/semola2006" class="user-mention">@semola2006</a>
+ Unwatch 1
+  Star 0
+  Fork 0 semola2006/Practical-Machine-Learning---Course-Project
+ Code  Issues 0  Pull requests 0  Wiki  Pulse  Graphs  Settings
+Branch: master Find file Copy pathPractical-Machine-Learning---Course-Project/Course_project.html
+68c51a3  27 minutes ago
+<a href="https://github.com/semola2006" class="user-mention">@semola2006</a> semola2006 First commit
+1 contributor
+RawBlameHistory     258 lines (222 sloc)  745 KB
+&lt;!DOCTYPE html&gt;</p>
+
+<p></p>
+
+<p></p>
+
+<p>
+
+
+</p>
+
+<p></p>
+
+
+
+<p>
+</p>
+
+
+
+
+
+
+
+code{white-space: pre;}
+
+<p></p>
+
+
+
+
+  pre:not([class]) {
+    background-color: white;
+  }
+
+
+
+
+<p></p>
+
+<p></p>
+
+
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+
+
+<div>
+
+
+
+
+
+
+<div id="assignment-background">
+<h2>
+<a id="assignment-background" class="anchor" href="#assignment-background" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ASSIGNMENT BACKGROUND:</h2>
+<p>One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, our goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.The goal of the project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set that is a categorical variable with 5 different levels (A, B, C, D, E). The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. We will download the train and test datasets from the links you can find below.</p>
+<p>The packages we will use are the following:</p>
+<pre><code>* library(RCurl) ; library(caret) ; library(rpart)
+* library(rattle); library(gbm)   ; library(plyr)</code></pre>
+<pre><code>url_train &lt;- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+url_test  &lt;- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+train &lt;- getURL(url_train, ssl.verifypeer = FALSE)
+test  &lt;- getURL(url_test, ssl.verifypeer = FALSE)
+
+training &lt;- read.csv(textConnection(train), header = TRUE, na.strings=c("NA","#DIV/0!",""))
+testing  &lt;- read.csv(textConnection(test), header = TRUE, na.strings=c("NA","#DIV/0!",""))</code></pre>
+<p>We approach this problem in four main steps.</p>
+<ol>
+<li>Clean the dataset and remove variable with low variability.</li>
+<li>Partition our clean dataset into myTraining (75%) and myTesting (25%) for parameters tuning</li>
+<li>Train a model for our classification problems and compute the expected out of sample error</li>
+<li>Use our model for out of sample validation</li>
+</ol>
+<pre><code># remove varaibles with NAs above 50% threshold and remove first columns
+
+training_1  &lt;- training[, colSums(is.na(training)) &lt; nrow(training) * 0.5]
+training_1  &lt;- training_1[ ,-c(1:6)]
+
+# shrink the number of variables with near zero var function
+
+nsv         &lt;- nearZeroVar(training_1, saveMetrics = TRUE)
+training_2  &lt;- training_1[c(rownames(nsv[nsv$nzv == "FALSE",])) ]
+Train       &lt;- training_2
+
+rm(training_1); rm(training_2) # remove temp dataframes</code></pre>
+<p>We now partition the clean Training dataset for cross validation process</p>
+<pre><code># 
+set.seed(1234)
+inTrain     &lt;- createDataPartition(Train$classe, p=0.75, list = FALSE)
+myTraining  &lt;- Train[inTrain, ]
+myTesting   &lt;- Train[-inTrain, ]</code></pre>
+<p>We follow the indications provided in the lessons of this class and decide to use boosting to help us with our classification problem. We fit a boosted tree model using the “gmb” package. For parameter tuning, 5 fold CV repeated 2 times that we will specify in the trainControl() function. The tuneGrid() parameters have been selected and set as optimal after a few test runs to reduce the time lapse. The code below is largely built following the example on “<a href="http://topepo.github.io/caret/training.html">http://topepo.github.io/caret/training.html</a>”</p>
+<pre><code>set.seed(4321)
+fitControl &lt;- trainControl(
+              method = "repeatedcv",
+              number = 5,
+              repeats = 2)
+
+fitGrid   &lt;- expand.grid(interaction.depth = c(1,2,3),
+                         n.trees = (1:3)*50,
+                         shrinkage = 0.1,
+                         n.minobsinnode = 10)
+Fit1 &lt;- train(classe ~ ., 
+              data = myTraining, 
+              method = "gbm", 
+              trControl = fitControl,
+              verbose = FALSE,
+              tuneGrid = fitGrid)</code></pre>
+<p>we can represent the outcome of our model and then show graphically the resampling profile</p>
+<pre><code>Fit1</code></pre>
+<pre><code>## Stochastic Gradient Boosting 
+## 
+## 14718 samples
+##    53 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold, repeated 2 times) 
+## Summary of sample sizes: 11775, 11776, 11773, 11774, 11774, 11774, ... 
+## Resampling results across tuning parameters:
+## 
+##   interaction.depth  n.trees  Accuracy   Kappa      Accuracy SD
+##   1                   50      0.7556049  0.6898132  0.009957490
+##   1                  100      0.8311251  0.7862049  0.008416190
+##   1                  150      0.8701930  0.8357164  0.008131555
+##   2                   50      0.8862963  0.8559992  0.006414590
+##   2                  100      0.9406859  0.9249494  0.007267711
+##   2                  150      0.9626653  0.9527628  0.004353710
+##   3                   50      0.9350799  0.9178156  0.005955446
+##   3                  100      0.9719730  0.9645403  0.002139115
+##   3                  150      0.9865811  0.9830252  0.003279377
+##   Kappa SD   
+##   0.012689256
+##   0.010656580
+##   0.010275217
+##   0.008123430
+##   0.009192859
+##   0.005507803
+##   0.007547972
+##   0.002709733
+##   0.004149565
+## 
+## Tuning parameter 'shrinkage' was held constant at a value of 0.1
+## 
+## Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+## Accuracy was used to select the optimal model using  the largest value.
+## The final values used for the model were n.trees = 150,
+##  interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.</code></pre>
+<pre><code>plot(Fit1)</code></pre>
+<p><img title alt width="672"></p>
+<pre><code>plot(Fit1, metric = "Accuracy", plotType = "level",
+     scales = list(x = list(rot = 90)))</code></pre>
+<p><img title alt width="672"></p>
+<p>Finally, we can apply to our testing dataset to get an appropriate estimate of the out of sample error. This method is based on the principle that we must always calculate forecast accuracy measures using test data that was not used when computing the model.</p>
+<pre><code># Apply to predict on the test dataset
+gmb_predict &lt;- predict(Fit1, newdata = myTesting)
+confusionMatrix(gmb_predict, myTesting$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1395   13    0    1    1
+##          B    0  925   14    3    2
+##          C    0    9  838    8    3
+##          D    0    2    2  791    2
+##          E    0    0    1    1  893
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9874          
+##                  95% CI : (0.9838, 0.9903)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.984           
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   0.9747   0.9801   0.9838   0.9911
+## Specificity            0.9957   0.9952   0.9951   0.9985   0.9995
+## Pos Pred Value         0.9894   0.9799   0.9767   0.9925   0.9978
+## Neg Pred Value         1.0000   0.9939   0.9958   0.9968   0.9980
+## Prevalence             0.2845   0.1935   0.1743   0.1639   0.1837
+## Detection Rate         0.2845   0.1886   0.1709   0.1613   0.1821
+## Detection Prevalence   0.2875   0.1925   0.1750   0.1625   0.1825
+## Balanced Accuracy      0.9979   0.9850   0.9876   0.9912   0.9953</code></pre>
+<p>The accuracy achieved with our boosted tree model is “Accuracy : 0.9874” and therefore the out of sample error is (1- accuracy) = 0.0126 or 1.26%</p>
+<p>In conclusion we can apply our model to predict how the participants performed their activity measured in the separate test dataset provided that we already downloaded and called “testing” and print the results of our prediction.</p>
+<pre><code>final &lt;- predict(Fit1, testing)
+final</code></pre>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
+</div>
+
+<p></p>
+</div>
+
+
+
+
+
+
+
+<p>
+
+Status API Training Shop Blog About
+© 2016 GitHub, Inc. Terms Privacy Security Contact Help</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
