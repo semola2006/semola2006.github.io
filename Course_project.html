@@ -141,7 +141,7 @@ Fit1 &lt;- train(classe ~ .,
               trControl = fitControl,
               verbose = FALSE,
               tuneGrid = fitGrid)</code></pre>
-<p>we can represent the outcome of our model and then show graphically the resampling profile</p>
+<p>We can represent the outcome of our model and then show graphically the resampling profile</p>
 <pre class="r"><code>Fit1</code></pre>
 <pre><code>## Stochastic Gradient Boosting 
 ## 
@@ -222,7 +222,7 @@ confusionMatrix(gmb_predict, myTesting$classe)</code></pre>
 ## Detection Prevalence   0.2875   0.1925   0.1750   0.1625   0.1825
 ## Balanced Accuracy      0.9979   0.9850   0.9876   0.9912   0.9953</code></pre>
 <p>The accuracy achieved with our boosted tree model is “Accuracy : 0.9874” and therefore the out of sample error is (1- accuracy) = 0.0126 or 1.26%</p>
-<p>In conclusion we can apply our model to predict how the participants performed their activity measured in the separate test dataset provided that we already downloaded and called “testing” and print the results of our prediction.</p>
+<p>In conclusion, we can apply our model to predict how the participants performed their activity measured in the separate test dataset provided that we already downloaded and called “testing” and print the results of our prediction.</p>
 <pre class="r"><code>final &lt;- predict(Fit1, testing)
 final</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B

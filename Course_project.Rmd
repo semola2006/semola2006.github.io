@@ -92,7 +92,7 @@ Fit1 <- train(classe ~ .,
               tuneGrid = fitGrid)
 ```
 
-we can represent the outcome of our model and then show graphically the resampling profile
+We can represent the outcome of our model and then show graphically the resampling profile
 
 ```{r, echo = TRUE}
 
@@ -114,7 +114,7 @@ confusionMatrix(gmb_predict, myTesting$classe)
 ```
 The accuracy achieved with our boosted tree model is "Accuracy : 0.9874" and therefore the out of sample error is (1- accuracy) = 0.0126 or 1.26%
 
-In conclusion we can apply our model to predict how the participants performed their activity measured in the separate test dataset provided that we already downloaded and called "testing" and print the results of our prediction.
+In conclusion, we can apply our model to predict how the participants performed their activity measured in the separate test dataset provided that we already downloaded and called "testing" and print the results of our prediction.
 
 ```{r, echo = TRUE}
 
